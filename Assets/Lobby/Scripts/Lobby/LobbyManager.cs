@@ -45,6 +45,8 @@ namespace Prototype.NetworkLobby
         public Text hostInfo;
 
         public InputField lobbyName;
+        public Text duration;
+        public Text lobbyNumber;
 
         //Client numPlayers from NetworkManager is always 0, so we count (throught connect/destroy in LobbyPlayer) the number
         //of players, so that even client know how many player there is.
@@ -66,6 +68,9 @@ namespace Prototype.NetworkLobby
 
         private bool refreshPlayer = false;
         private Payload refreshPayload;
+
+        private bool refreshDuration = false;
+        private Payload refreshDurationPayload;
 
         private bool toggleVideoPlayer = false;
         private Payload togglePayload;
@@ -108,6 +113,12 @@ namespace Prototype.NetworkLobby
             {
                 playerCommands["refresh"](refreshPayload);
                 refreshPlayer = false;
+            }
+
+            if (refreshDuration)
+            {
+                LobbyPlayerList._instance.SetPlayerDuration(refreshDurationPayload.target, refreshDurationPayload.duration);
+                refreshDuration = false;
             }
 
             if (speedTest && gg <= 6 && tt>1f)
@@ -180,6 +191,11 @@ namespace Prototype.NetworkLobby
                 { "refreshData", (payload) => {
                         refreshPayload = payload;
                         refreshPlayer = true;
+                    }
+                },
+                { "duration", (payload) => {
+                    refreshDuration = true;
+                    refreshDurationPayload = payload;
                     }
                 },
                 { "startDemo", (payload) => {
@@ -391,6 +407,7 @@ namespace Prototype.NetworkLobby
         {
             User user = new User();
             user.userName = lobbyName.text;
+            lobbyNumber.text = user.userName.ToString();
             int n;
             if (user.userName == "" || !int.TryParse(user.userName, out n))
             {

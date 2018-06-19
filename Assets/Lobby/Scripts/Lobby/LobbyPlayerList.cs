@@ -57,6 +57,12 @@ namespace Prototype.NetworkLobby
             lobbyPlayer.ToggleField(setToggle);
         }
 
+        public void SetPlayerDuration(string name, float dur)
+        {
+            LobbyPlayer lobbyPlayer = _players.Find(player => player.nameInput.text == name);
+            lobbyPlayer.SetDuration(dur);
+        }
+
         public void RemovePlayer(LobbyPlayer player)
         { 
             _players.Remove(player);
