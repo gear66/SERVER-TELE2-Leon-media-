@@ -22,12 +22,14 @@ namespace Prototype.NetworkLobby
         public Button readyButton;
         public Button waitingPlayerButton;
         public Button removePlayerButton;
+        public GameObject toggleButton;
         //public Text dataTextdataText;
         public bool isItClient;
 
         public GameObject localIcone;
         public GameObject remoteIcone;
         public GameObject engine;
+        public bool toggleState;
 
         //public GameObject datasender;
         //public GameObject ddd;
@@ -90,7 +92,15 @@ namespace Prototype.NetworkLobby
 
         public void Toggler()
         {
-            LobbyManager.s_Singleton.ToggleOnlineVideo(nameInput.text);
+            if (toggleState)
+            {
+                toggleButton.GetComponent<Image>().color = new Color(0.79f, 1f, 0.79f);
+            }
+            if (!toggleState)
+            {
+                toggleButton.GetComponent<Image>().color = new Color(0.85f, 0.85f, 1f);
+            }
+            LobbyManager.s_Singleton.ToggleOnlineVideo(nameInput.text, toggleState);
         }
 
         void ChangeReadyButtonColor(Color c)

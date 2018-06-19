@@ -78,7 +78,6 @@ namespace Prototype.NetworkLobby
         float fillLim;
         public bool speedTest;
         public float deltaSpeed;
-        public bool togglee = false;
         public Text textSpeed;
         public Image speedIndicator;
 
@@ -223,7 +222,7 @@ namespace Prototype.NetworkLobby
                         message.command = command;
                     message.target = payload.target;
 
-                    UnityEngine.Debug.Log("Toggle video " + payload.onlineVid);
+                    UnityEngine.Debug.Log("Toggle video " + payload.onlineVideo);
                     UnityEngine.Debug.Log("Toggle targety " + payload.target);
 
                         string json = JsonConvert.SerializeObject(message);
@@ -305,6 +304,7 @@ namespace Prototype.NetworkLobby
 
             newPlayer.playerName = user.userName;
             newPlayer.nameInput.text = user.userName;
+            newPlayer.toggleState = user.toggleState;
 
             return newPlayer;
         }
@@ -333,7 +333,7 @@ namespace Prototype.NetworkLobby
             gg++;
         }
 
-        public void ToggleOnlineVideo(string name)
+        public void ToggleOnlineVideo(string name, bool toggleState)
         {
             User user = new User();
             user.userName = "1";
@@ -341,10 +341,10 @@ namespace Prototype.NetworkLobby
             UnityEngine.Debug.Log("ToggleOnlineVideo called");
             Payload newPayload = new Payload();
             newPayload.user = user;
-            newPayload.onlineVid = !togglee;
+            newPayload.onlineVideo = !toggleState;
             newPayload.target = name;
             UnityEngine.Debug.Log(newPayload.target);
-            togglee = !togglee;
+            toggleState = !toggleState;
             serverCommands["toggleOnlineVideo"](newPayload);
         }
 
