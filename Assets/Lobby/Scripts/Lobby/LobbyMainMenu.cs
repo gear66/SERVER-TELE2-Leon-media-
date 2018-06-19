@@ -27,8 +27,7 @@ namespace Prototype.NetworkLobby
         }
 
         public void OnClickHost()
-        {
-            //lobbyManager.StartHost();
+        { 
             lobbyManager.HostStart();
         }
 

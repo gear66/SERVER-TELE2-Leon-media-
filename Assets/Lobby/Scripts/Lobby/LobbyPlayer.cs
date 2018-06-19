@@ -267,7 +267,7 @@ namespace Prototype.NetworkLobby
         {
             Payload payload = new Payload();
             payload.target = playerName;
-            LobbyManager.adminCommands["startDemo"](payload);
+            LobbyManager.requests["startDemo"](payload);
         }
         //[Command]
         //void CmdTest()
