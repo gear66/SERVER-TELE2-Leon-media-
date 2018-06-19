@@ -72,14 +72,23 @@ namespace Prototype.NetworkLobby
         public static Dictionary<string, Dictionary<string, Action<Payload>>> commandsSet;
 
         public float t;
+        public float tt;
+        public float ttt;
         public float gg = 0;
+        float fillLim;
         public bool speedTest;
         public float deltaSpeed;
         public bool togglee = false;
         public Text textSpeed;
+        public Image speedIndicator;
 
         void Update()
         {
+            t += Time.deltaTime;
+            tt += Time.deltaTime;
+            ttt += Time.deltaTime;
+            speedIndicator.fillAmount = Mathf.Lerp(speedIndicator.fillAmount, fillLim, 0.03f);
+
             if (addNewPlayer)
             {
                 adminCommands["addPlayer"](tempPayload);
@@ -92,16 +101,19 @@ namespace Prototype.NetworkLobby
                 refreshPlayer = false;
             }
 
-            t += Time.deltaTime;
-
-            if (speedTest && gg <= 6)
+            if (speedTest && gg <= 6 && tt>1f)
             {
-                UnityEngine.Debug.Log("speed test");
+                fillLim = gg / 6;
+                UnityEngine.Debug.Log("Calculating speed...");
                 StartCoroutine(SpeedTestt());
+                tt = 0;
             }
 
-            if (gg >= 6)
+            if (gg >= 6 && tt > 1f)
             {
+                speedIndicator.color = Color.green;
+                //D0FFCC
+                speedIndicator.color = new Color(0.79f, 1f, 0.79f);
 
                 User user = new User();
                 user.userName = "1";
@@ -111,19 +123,22 @@ namespace Prototype.NetworkLobby
                 newPayload.user = user;
                 newPayload.speedTest = deltaSpeed;
 
-                UnityEngine.Debug.Log("deltaSpeed in payload");
+                UnityEngine.Debug.Log("deltaSpeed sent in payload");
                 UnityEngine.Debug.Log(newPayload.speedTest);
 
                 serverCommands["broadCastSpeedTest"](newPayload);
 
                 deltaSpeed = 0;
                 speedTest = false;
+                tt = 0;
                 gg = 0;
             }
         }
 
         public void StartSpeedTest()
         {
+            speedIndicator.fillAmount = 0;
+            speedIndicator.color = Color.white;
             speedTest = true;
         }
 
@@ -314,7 +329,7 @@ namespace Prototype.NetworkLobby
             deltaSpeed = (float)(data.LongLength / watch.Elapsed.TotalSeconds / 100000f / 6f); // instead of [Seconds] property
             UnityEngine.Debug.Log("deltaSpeed in speedtest");
             UnityEngine.Debug.Log(deltaSpeed);
-            textSpeed.text = deltaSpeed.ToString("0");
+            textSpeed.text = deltaSpeed.ToString("0.00") + " Mb/s";
             gg++;
         }
 
