@@ -53,7 +53,6 @@ namespace Prototype.NetworkLobby
         //static Color OddRowColor = new Color(250.0f / 255.0f, 250.0f / 255.0f, 250.0f / 255.0f, 1.0f);
         //static Color EvenRowColor = new Color(180.0f / 255.0f, 180.0f / 255.0f, 180.0f / 255.0f, 1.0f);
 
-
         public override void OnClientEnterLobby()
         {
             base.OnClientEnterLobby();
@@ -90,16 +89,25 @@ namespace Prototype.NetworkLobby
            SetupLocalPlayer();
         }
 
-        public void Toggler()
+        public void ToggleField(bool newToggleState)
         {
-            if (toggleState)
+            if (newToggleState)
             {
                 toggleButton.GetComponent<Image>().color = new Color(0.79f, 1f, 0.79f);
+                toggleButton.GetComponentInChildren<Text>().text = "Online";
             }
-            if (!toggleState)
+            if (!newToggleState)
             {
                 toggleButton.GetComponent<Image>().color = new Color(0.85f, 0.85f, 1f);
+                toggleButton.GetComponentInChildren<Text>().text = "Offline";
             }
+            toggleState = newToggleState;
+        }
+
+        public void Toggler()
+        {
+            toggleButton.GetComponent<Image>().color = new Color(1f, 1f, 0.75f);
+            toggleButton.GetComponentInChildren<Text>().text = ".....";
             LobbyManager.s_Singleton.ToggleOnlineVideo(nameInput.text, toggleState);
         }
 

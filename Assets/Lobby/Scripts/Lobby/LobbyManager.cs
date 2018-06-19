@@ -65,6 +65,9 @@ namespace Prototype.NetworkLobby
         private bool refreshPlayer = false;
         private Payload refreshPayload;
 
+        private bool toggleVideoPlayer = false;
+        private Payload togglePayload;
+
         public static Dictionary<string, RectTransform> screens;
         public static Dictionary<string, Action<Payload>> serverCommands;
         public static Dictionary<string, Action<Payload>> playerCommands;
@@ -92,6 +95,11 @@ namespace Prototype.NetworkLobby
             {
                 adminCommands["addPlayer"](tempPayload);
                 addNewPlayer = false;
+            }
+
+            if (toggleVideoPlayer)
+            {
+                LobbyPlayerList._instance.TogglePlayerVideo(togglePayload.target, togglePayload.onlineVideo);
             }
 
             if (refreshPlayer)
@@ -155,6 +163,12 @@ namespace Prototype.NetworkLobby
                 { "playerConnected", (payload) => {
                         tempPayload = payload;
                         addNewPlayer = true;
+                    }
+                },
+                { "toggleOnlineVideo", (payload) => {
+                        
+                        togglePayload = payload;
+                        toggleVideoPlayer = true;
                     }
                 },
                 { "startDemo", (payload) => {
@@ -222,8 +236,7 @@ namespace Prototype.NetworkLobby
                         message.command = command;
                     message.target = payload.target;
 
-                    UnityEngine.Debug.Log("Toggle video " + payload.onlineVideo);
-                    UnityEngine.Debug.Log("Toggle targety " + payload.target);
+                    UnityEngine.Debug.Log("Toggle targety on " + payload.target + " - Toggle video is " + payload.onlineVideo);
 
                         string json = JsonConvert.SerializeObject(message);
                         ws.Send(json);

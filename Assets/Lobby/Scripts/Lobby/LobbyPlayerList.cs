@@ -51,6 +51,12 @@ namespace Prototype.NetworkLobby
             PlayerListModified();
         }
 
+        public void TogglePlayerVideo(string name, bool setToggle)
+        {
+            LobbyPlayer lobbyPlayer = _players.Find(player => player.nameInput.text == name);
+            lobbyPlayer.ToggleField(setToggle);
+        }
+
         public void RemovePlayer(LobbyPlayer player)
         { 
             _players.Remove(player);
