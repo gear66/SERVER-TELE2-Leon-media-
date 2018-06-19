@@ -65,6 +65,9 @@ namespace Prototype.NetworkLobby
         private bool refreshPlayer = false;
         private Payload refreshPayload;
 
+        private bool toggleVideoPlayer = false;
+        private Payload togglePayload;
+
         public static Dictionary<string, RectTransform> screens;
         public static Dictionary<string, Action<Payload>> serverCommands;
         public static Dictionary<string, Action<Payload>> playerCommands;
@@ -72,18 +75,31 @@ namespace Prototype.NetworkLobby
         public static Dictionary<string, Dictionary<string, Action<Payload>>> commandsSet;
 
         public float t;
+        public float tt;
+        public float ttt;
         public float gg = 0;
+        float fillLim;
         public bool speedTest;
         public float deltaSpeed;
-        public bool togglee = false;
         public Text textSpeed;
+        public Image speedIndicator;
 
         void Update()
         {
+            t += Time.deltaTime;
+            tt += Time.deltaTime;
+            ttt += Time.deltaTime;
+            speedIndicator.fillAmount = Mathf.Lerp(speedIndicator.fillAmount, fillLim, 0.03f);
+
             if (addNewPlayer)
             {
                 adminCommands["addPlayer"](tempPayload);
                 addNewPlayer = false;
+            }
+
+            if (toggleVideoPlayer)
+            {
+                LobbyPlayerList._instance.TogglePlayerVideo(togglePayload.target, togglePayload.onlineVideo);
             }
 
             if (refreshPlayer)
@@ -92,16 +108,19 @@ namespace Prototype.NetworkLobby
                 refreshPlayer = false;
             }
 
-            t += Time.deltaTime;
-
-            if (speedTest && gg <= 6)
+            if (speedTest && gg <= 6 && tt>1f)
             {
-                UnityEngine.Debug.Log("speed test");
+                fillLim = gg / 6;
+                UnityEngine.Debug.Log("Calculating speed...");
                 StartCoroutine(SpeedTestt());
+                tt = 0;
             }
 
-            if (gg >= 6)
+            if (gg >= 6 && tt > 1f)
             {
+                speedIndicator.color = Color.green;
+                //D0FFCC
+                speedIndicator.color = new Color(0.79f, 1f, 0.79f);
 
                 User user = new User();
                 user.userName = "1";
@@ -111,19 +130,22 @@ namespace Prototype.NetworkLobby
                 newPayload.user = user;
                 newPayload.speedTest = deltaSpeed;
 
-                UnityEngine.Debug.Log("deltaSpeed in payload");
+                UnityEngine.Debug.Log("deltaSpeed sent in payload");
                 UnityEngine.Debug.Log(newPayload.speedTest);
 
                 serverCommands["broadCastSpeedTest"](newPayload);
 
                 deltaSpeed = 0;
                 speedTest = false;
+                tt = 0;
                 gg = 0;
             }
         }
 
         public void StartSpeedTest()
         {
+            speedIndicator.fillAmount = 0;
+            speedIndicator.color = Color.white;
             speedTest = true;
         }
 
@@ -141,6 +163,12 @@ namespace Prototype.NetworkLobby
                 { "playerConnected", (payload) => {
                         tempPayload = payload;
                         addNewPlayer = true;
+                    }
+                },
+                { "toggleOnlineVideo", (payload) => {
+                        
+                        togglePayload = payload;
+                        toggleVideoPlayer = true;
                     }
                 },
                 { "startDemo", (payload) => {
@@ -208,8 +236,7 @@ namespace Prototype.NetworkLobby
                         message.command = command;
                     message.target = payload.target;
 
-                    UnityEngine.Debug.Log("Toggle video " + payload.onlineVid);
-                    UnityEngine.Debug.Log("Toggle targety " + payload.target);
+                    UnityEngine.Debug.Log("Toggle targety on " + payload.target + " - Toggle video is " + payload.onlineVideo);
 
                         string json = JsonConvert.SerializeObject(message);
                         ws.Send(json);
@@ -290,6 +317,7 @@ namespace Prototype.NetworkLobby
 
             newPlayer.playerName = user.userName;
             newPlayer.nameInput.text = user.userName;
+            newPlayer.toggleState = user.toggleState;
 
             return newPlayer;
         }
@@ -314,11 +342,11 @@ namespace Prototype.NetworkLobby
             deltaSpeed = (float)(data.LongLength / watch.Elapsed.TotalSeconds / 100000f / 6f); // instead of [Seconds] property
             UnityEngine.Debug.Log("deltaSpeed in speedtest");
             UnityEngine.Debug.Log(deltaSpeed);
-            textSpeed.text = deltaSpeed.ToString("0");
+            textSpeed.text = deltaSpeed.ToString("0.00") + " Mb/s";
             gg++;
         }
 
-        public void ToggleOnlineVideo(string name)
+        public void ToggleOnlineVideo(string name, bool toggleState)
         {
             User user = new User();
             user.userName = "1";
@@ -326,10 +354,10 @@ namespace Prototype.NetworkLobby
             UnityEngine.Debug.Log("ToggleOnlineVideo called");
             Payload newPayload = new Payload();
             newPayload.user = user;
-            newPayload.onlineVid = !togglee;
+            newPayload.onlineVideo = !toggleState;
             newPayload.target = name;
             UnityEngine.Debug.Log(newPayload.target);
-            togglee = !togglee;
+            toggleState = !toggleState;
             serverCommands["toggleOnlineVideo"](newPayload);
         }
 
