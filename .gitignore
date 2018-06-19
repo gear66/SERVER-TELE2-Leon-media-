@@ -3,3 +3,9 @@
 ################################################################################
 
 /.vs
+*.png
+*.meta
+/Library
+/BUILDS
+/Assets/Materials/MATS/70704d479be50e7c44c3f0ec144d41f5.jpg
+/Assets/SERVER/FlatButtonIconPack/psd
