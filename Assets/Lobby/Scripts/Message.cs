@@ -6,9 +6,20 @@ public class Message
     public Payload payload { get; set; }
 
     [JsonProperty("command")]
-    public Command command { get; set; }
+    public string command { get; set; }
 
-    [JsonProperty("target")]
-    public string target { get; set; }
+    [JsonProperty("message")]
+    public string message { get; set; }
 
+    [JsonProperty("error")]
+    public string error { get; set; }
+
+    [JsonProperty("success")]
+    public bool success { get; set; }
+
+    [JsonProperty("isResponse")]
+    public bool isResponse { get; set; }
+
+    [JsonProperty("isRequset")]
+    public bool isRequset { get; set; }
 }

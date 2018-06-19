@@ -2470,6 +2470,7 @@ MonoBehaviour:
   backButton: {fileID: 114463882668704814}
   statusInfo: {fileID: 114967109983074134}
   hostInfo: {fileID: 114496114008704056}
+  lobbyName: {fileID: 114927856452960764}
   _playerNumber: 0
   _isMatchmaking: 0
   t: 0
@@ -2478,7 +2479,6 @@ MonoBehaviour:
   gg: 0
   speedTest: 0
   deltaSpeed: 0
-  togglee: 0
   textSpeed: {fileID: 114598467646872348}
   speedIndicator: {fileID: 114050186920562958}
 --- !u!114 &114254711950679782
@@ -4010,8 +4010,8 @@ MonoBehaviour:
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
-    m_HorizontalOverflow: 1
-    m_VerticalOverflow: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: "\u0421\u041E\u0415\u0414\u0418\u041D\u0415\u041D\u0418\u0415..."
 --- !u!114 &114689305910398688
@@ -6340,8 +6340,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0.000015258789, y: -0.000030517578}
-  m_SizeDelta: {x: 986, y: 554}
+  m_AnchoredPosition: {x: 141.4, y: -95.5}
+  m_SizeDelta: {x: 702.9, y: 328.5}
   m_Pivot: {x: 0, y: 1}
 --- !u!224 &224499649150274404
 RectTransform:
@@ -6495,7 +6495,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -504.02, y: 99.99997}
+  m_AnchoredPosition: {x: -504.01953, y: 99.99997}
   m_SizeDelta: {x: 229.31, y: 119.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224603276363450948

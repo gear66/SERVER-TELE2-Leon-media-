@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
@@ -44,6 +44,8 @@ namespace Prototype.NetworkLobby
         public Text statusInfo;
         public Text hostInfo;
 
+        public InputField lobbyName;
+
         //Client numPlayers from NetworkManager is always 0, so we count (throught connect/destroy in LobbyPlayer) the number
         //of players, so that even client know how many player there is.
         [HideInInspector]
@@ -69,9 +71,9 @@ namespace Prototype.NetworkLobby
         private Payload togglePayload;
 
         public static Dictionary<string, RectTransform> screens;
-        public static Dictionary<string, Action<Payload>> serverCommands;
+        public static Dictionary<string, Action<Payload>> responses;
         public static Dictionary<string, Action<Payload>> playerCommands;
-        public static Dictionary<string, Action<Payload>> adminCommands;
+        public static Dictionary<string, Action<Payload>> requests;
         public static Dictionary<string, Dictionary<string, Action<Payload>>> commandsSet;
 
         public float t;
@@ -93,7 +95,7 @@ namespace Prototype.NetworkLobby
 
             if (addNewPlayer)
             {
-                adminCommands["addPlayer"](tempPayload);
+                requests["addPlayer"](tempPayload);
                 addNewPlayer = false;
             }
 
@@ -133,7 +135,7 @@ namespace Prototype.NetworkLobby
                 UnityEngine.Debug.Log("deltaSpeed sent in payload");
                 UnityEngine.Debug.Log(newPayload.speedTest);
 
-                serverCommands["broadCastSpeedTest"](newPayload);
+                responses["broadCastSpeedTest"](newPayload);
 
                 deltaSpeed = 0;
                 speedTest = false;
@@ -155,7 +157,7 @@ namespace Prototype.NetworkLobby
             _lobbyHooks = GetComponent<Prototype.NetworkLobby.LobbyHook>();
             currentPanel = mainMenuPanel;
 
-            adminCommands = new Dictionary<string, Action<Payload>> {
+            requests = new Dictionary<string, Action<Payload>> {
                 { "addPlayer", (payload) => {
                         LobbyPlayerList._instance.AddPlayer(GetPlayer(payload));
                     }
@@ -166,9 +168,18 @@ namespace Prototype.NetworkLobby
                     }
                 },
                 { "toggleOnlineVideo", (payload) => {
-                        
+
                         togglePayload = payload;
                         toggleVideoPlayer = true;
+                    }
+                },
+                { "refresh", (payload) => {
+                        LobbyPlayerList._instance.UpdatePlayer(payload.user, payload.stateData);
+                    }
+                },
+                { "refreshData", (payload) => {
+                        refreshPayload = payload;
+                        refreshPlayer = true;
                     }
                 },
                 { "startDemo", (payload) => {
@@ -178,14 +189,9 @@ namespace Prototype.NetworkLobby
 
                         payload.user = newAdmin;
 
-                        Command command = new Command();
-                        command.command = "startDemo";
-                        command.setType = "playerCommands";
-
                         Message message = new Message();
                         message.payload = payload;
-                        message.command = command;
-                        message.target = payload.target;
+                        message.command = "playerCommands";
 
                         string json = JsonConvert.SerializeObject(message);
                         ws.Send(json);
@@ -193,19 +199,7 @@ namespace Prototype.NetworkLobby
                 }
             };
 
-            playerCommands = new Dictionary<string, Action<Payload>> {
-                { "refresh", (payload) => {
-                        LobbyPlayerList._instance.UpdatePlayer(payload.user, payload.stateData);
-                    }
-                },
-                { "refreshData", (payload) => {
-                        refreshPayload = payload;
-                        refreshPlayer = true;
-                    }
-                }
-            };
-
-            serverCommands = new Dictionary<string, Action<Payload>> {
+            responses = new Dictionary<string, Action<Payload>> {
                 { "createLobby", (payload) => {
                         User user = new User();
                         user.userName = "1";
@@ -214,42 +208,29 @@ namespace Prototype.NetworkLobby
                         Payload newPayload = new Payload();
                         newPayload.user = user;
 
-                        Command command = new Command();
-                        command.setType = "serverCommands";
-                        command.command = "createLobby";
-
                         Message message = new Message();
                         message.payload = payload;
-                        message.command = command;
+                        message.command = "createLobby";
 
                         string json = JsonConvert.SerializeObject(message);
                         ws.Send(json);
                     }
                 },
                 { "toggleOnlineVideo", (payload) => {
-                        Command command = new Command();
-                        command.setType = "serverCommands";
-                        command.command = "toggleOnlineVideo";
-
                         Message message = new Message();
                         message.payload = payload;
-                        message.command = command;
-                    message.target = payload.target;
+                        message.command = "toggleOnlineVideo";
 
-                    UnityEngine.Debug.Log("Toggle targety on " + payload.target + " - Toggle video is " + payload.onlineVideo);
+                        UnityEngine.Debug.Log("Toggle targety on " + payload.target + " - Toggle video is " + payload.onlineVideo);
 
                         string json = JsonConvert.SerializeObject(message);
                         ws.Send(json);
                     }
                 },
                 { "broadCastSpeedTest", (payload) => {
-                        Command command = new Command();
-                        command.setType = "serverCommands";
-                        command.command = "broadCastSpeedTest";
-
                         Message message = new Message();
                         message.payload = payload;
-                        message.command = command;
+                        message.command = "broadCastSpeedTest";
 
                         string json = JsonConvert.SerializeObject(message);
                         ws.Send(json);
@@ -263,16 +244,15 @@ namespace Prototype.NetworkLobby
             };
 
             commandsSet = new Dictionary<string, Dictionary<string, Action<Payload>>> {
-                { "playerCommands", playerCommands },
-                { "adminCommands", adminCommands },
-                { "serverCommands", serverCommands }
+                { "requests", requests },
+                { "responses", responses }
             };
 
             backButton.gameObject.SetActive(false);
             GetComponent<Canvas>().enabled = true;
 
-            //ws = new WebSocket("ws://localhost:8999");
-            ws = new WebSocket("ws://cinematele2.herokuapp.com/");
+            ws = new WebSocket("ws://localhost:8999");
+            //ws = new WebSocket("ws://cinematele2.herokuapp.com/");
 
 
             User admin = new User();
@@ -282,22 +262,18 @@ namespace Prototype.NetworkLobby
             Payload initPayload = new Payload();
             initPayload.user = admin;
 
-            Command newCommand = new Command();
-            newCommand.setType = "serverCommands";
-            newCommand.command = "reg";
-
             Message newMessage = new Message();
-            newMessage.command = newCommand;
+            newMessage.command = "reg";
             newMessage.payload = initPayload;
 
             string jsonAdmin = JsonConvert.SerializeObject(newMessage);
             ws.OnMessage += (sender, e) => {
                 Message message = JsonConvert.DeserializeObject<Message>(e.Data);
-                Command command = message.command;
+                
+                Dictionary<string, Action<Payload>> currentCommandSet
+                    = commandsSet[message.isRequset ? "requests" : "responses"];
 
-                Dictionary<string, Action<Payload>> currentCommandSet = commandsSet[command.setType];
-
-                currentCommandSet[command.command](message.payload);
+                currentCommandSet[message.command](message.payload);
             };
 
             ws.Connect();
@@ -358,7 +334,7 @@ namespace Prototype.NetworkLobby
             newPayload.target = name;
             UnityEngine.Debug.Log(newPayload.target);
             toggleState = !toggleState;
-            serverCommands["toggleOnlineVideo"](newPayload);
+            responses["toggleOnlineVideo"](newPayload);
         }
 
         public override void OnLobbyClientSceneChanged(NetworkConnection conn)
@@ -413,18 +389,28 @@ namespace Prototype.NetworkLobby
 
         public void HostStart()
         {
-            ChangeTo(lobbyPanel);
-            backDelegate = StopHostClbk;
-            SetServerInfo("Hosting", networkAddress);
-
             User user = new User();
-            user.userName = "1";
+            user.userName = lobbyName.text;
+            int n;
+            if (user.userName == "" || !int.TryParse(user.userName, out n))
+            {
+                infoPanel.Display("Введите числовое значение для номера комнаты", "Вернуться", () =>
+                {
+                    ChangeTo(mainMenuPanel);
+                });
+                return;
+            }
+
+            ChangeTo(lobbyPanel);
+            SetServerInfo("Hosting", lobbyName.text);
+
+            UnityEngine.Debug.Log(user.userName);
             user.userType = "Admin";
 
             Payload payload = new Payload();
             payload.user = user;
 
-            serverCommands["createLobby"](payload);
+            responses["createLobby"](payload);
         }
 
         public void ChangeTo(RectTransform newPanel)
@@ -484,7 +470,7 @@ namespace Prototype.NetworkLobby
 
             Payload payload = new Payload();
             payload.user = user;
-            adminCommands["playerConnected"](payload);
+            requests["playerConnected"](payload);
             //TryToAddPlayer();
         }
 
