@@ -198,14 +198,14 @@ namespace Prototype.NetworkLobby
                 },
                 { "startDemo", (payload) => {
                         User newAdmin = new User();
-                        newAdmin.userName = "1";
+                        newAdmin.userName = lobbyName.text;
                         newAdmin.userType = "Admin";
 
                         payload.user = newAdmin;
 
                         Message message = new Message();
                         message.payload = payload;
-                        message.command = "playerCommands";
+                        message.command = "startDemo";
 
                         string json = JsonConvert.SerializeObject(message);
                         ws.Send(json);
