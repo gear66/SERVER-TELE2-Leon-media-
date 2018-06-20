@@ -510,7 +510,8 @@ namespace Prototype.NetworkLobby
         public BackButtonDelegate backDelegate;
         public void GoBackButton()
         {
-            backDelegate();
+            ChangeTo(mainMenuPanel);
+            ws.Close();
             topPanel.isInGame = false;
         }
 
