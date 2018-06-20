@@ -62,7 +62,7 @@ namespace Prototype.NetworkLobby
         protected LobbyHook _lobbyHooks;
 
         private bool addNewPlayer = false;
-        private Payload tempPayload;
+        private Payload joinLobbyPayload;
 
         private bool refreshPlayer = false;
         private Payload refreshPayload;
@@ -71,10 +71,10 @@ namespace Prototype.NetworkLobby
         private Payload togglePayload;
 
         public static Dictionary<string, RectTransform> screens;
-        public static Dictionary<string, Action<Payload>> responses;
-        public static Dictionary<string, Action<Payload>> playerCommands;
+        public static Dictionary<string, Action<Message>> responses;
         public static Dictionary<string, Action<Payload>> requests;
-        public static Dictionary<string, Dictionary<string, Action<Payload>>> commandsSet;
+
+        private bool lobbyCreated = false;
 
         public float t;
         public float tt;
@@ -93,9 +93,15 @@ namespace Prototype.NetworkLobby
             ttt += Time.deltaTime;
             speedIndicator.fillAmount = Mathf.Lerp(speedIndicator.fillAmount, fillLim, 0.03f);
 
+            if (lobbyCreated)
+            {
+                StartLobby();
+                lobbyCreated = false;
+            }
+
             if (addNewPlayer)
             {
-                requests["addPlayer"](tempPayload);
+                LobbyPlayerList._instance.AddPlayer(GetPlayer(joinLobbyPayload));
                 addNewPlayer = false;
             }
 
@@ -106,7 +112,7 @@ namespace Prototype.NetworkLobby
 
             if (refreshPlayer)
             {
-                playerCommands["refresh"](refreshPayload);
+                LobbyPlayerList._instance.UpdatePlayer(refreshPayload.user, refreshPayload.stateData);
                 refreshPlayer = false;
             }
 
@@ -125,17 +131,17 @@ namespace Prototype.NetworkLobby
                 speedIndicator.color = new Color(0.79f, 1f, 0.79f);
 
                 User user = new User();
-                user.userName = "1";
+                user.userName = lobbyName.text;
                 user.userType = "Admin";
 
-                Payload newPayload = new Payload();
-                newPayload.user = user;
-                newPayload.speedTest = deltaSpeed;
+                Payload payload = new Payload();
+                payload.user = user;
+                payload.speedTest = deltaSpeed;
 
                 UnityEngine.Debug.Log("deltaSpeed sent in payload");
-                UnityEngine.Debug.Log(newPayload.speedTest);
+                UnityEngine.Debug.Log(payload.speedTest);
 
-                responses["broadCastSpeedTest"](newPayload);
+                requests["broadCastSpeedTest"](payload);
 
                 deltaSpeed = 0;
                 speedTest = false;
@@ -154,27 +160,18 @@ namespace Prototype.NetworkLobby
         void Start()
         {
             s_Singleton = this;
-            _lobbyHooks = GetComponent<Prototype.NetworkLobby.LobbyHook>();
+            _lobbyHooks = GetComponent<LobbyHook>();
             currentPanel = mainMenuPanel;
 
             requests = new Dictionary<string, Action<Payload>> {
-                { "addPlayer", (payload) => {
-                        LobbyPlayerList._instance.AddPlayer(GetPlayer(payload));
-                    }
-                },
-                { "playerConnected", (payload) => {
-                        tempPayload = payload;
+                { "joinLobby", (payload) => {
+                        joinLobbyPayload = payload;
                         addNewPlayer = true;
                     }
                 },
-                { "toggleOnlineVideo", (payload) => {
-
-                        togglePayload = payload;
-                        toggleVideoPlayer = true;
-                    }
-                },
-                { "refresh", (payload) => {
-                        LobbyPlayerList._instance.UpdatePlayer(payload.user, payload.stateData);
+                { "joinLobbyConfirm", (payload) => {
+                        joinLobbyPayload = payload;
+                        addNewPlayer = true;
                     }
                 },
                 { "refreshData", (payload) => {
@@ -196,18 +193,8 @@ namespace Prototype.NetworkLobby
                         string json = JsonConvert.SerializeObject(message);
                         ws.Send(json);
                     }
-                }
-            };
-
-            responses = new Dictionary<string, Action<Payload>> {
+                },
                 { "createLobby", (payload) => {
-                        User user = new User();
-                        user.userName = "1";
-                        user.userType = "Admin";
-
-                        Payload newPayload = new Payload();
-                        newPayload.user = user;
-
                         Message message = new Message();
                         message.payload = payload;
                         message.command = "createLobby";
@@ -238,50 +225,40 @@ namespace Prototype.NetworkLobby
                 }
             };
 
+            responses = new Dictionary<string, Action<Message>> {
+                { "createLobby", (message) => {
+                        if (message.success) {
+                            lobbyCreated = true;
+                        }
+                    }
+                },
+                { "toggleOnlineVideo", (message) => {
+                        if (message.success) {
+                            togglePayload = message.payload;
+                            toggleVideoPlayer = true;
+                        }
+                    }
+                },
+
+            };
+
             screens = new Dictionary<string, RectTransform> {
                 { "mainMenu", s_Singleton.mainMenuPanel},
                 { "lobby", s_Singleton.lobbyPanel }
             };
 
-            commandsSet = new Dictionary<string, Dictionary<string, Action<Payload>>> {
-                { "requests", requests },
-                { "responses", responses }
-            };
-
             backButton.gameObject.SetActive(false);
             GetComponent<Canvas>().enabled = true;
-
-            ws = new WebSocket("ws://localhost:8999");
-            //ws = new WebSocket("ws://cinematele2.herokuapp.com/");
-
-
-            User admin = new User();
-            admin.userType = "Admin";
-            admin.userName = "1";
-
-            Payload initPayload = new Payload();
-            initPayload.user = admin;
-
-            Message newMessage = new Message();
-            newMessage.command = "reg";
-            newMessage.payload = initPayload;
-
-            string jsonAdmin = JsonConvert.SerializeObject(newMessage);
-            ws.OnMessage += (sender, e) => {
-                Message message = JsonConvert.DeserializeObject<Message>(e.Data);
-                
-                Dictionary<string, Action<Payload>> currentCommandSet
-                    = commandsSet[message.isRequset ? "requests" : "responses"];
-
-                currentCommandSet[message.command](message.payload);
-            };
-
-            ws.Connect();
-            ws.Send(jsonAdmin);
 
             DontDestroyOnLoad(gameObject);
 
             SetServerInfo("Offline", "None");
+        }
+
+        public void BackButton()
+        {
+            ChangeTo(mainMenuPanel);
+            ws.Close();
         }
 
         public LobbyPlayer GetPlayer(Payload payload)
@@ -325,7 +302,7 @@ namespace Prototype.NetworkLobby
         public void ToggleOnlineVideo(string name, bool toggleState)
         {
             User user = new User();
-            user.userName = "1";
+            user.userName = lobbyName.text;
             user.userType = "Admin";
             UnityEngine.Debug.Log("ToggleOnlineVideo called");
             Payload newPayload = new Payload();
@@ -334,7 +311,7 @@ namespace Prototype.NetworkLobby
             newPayload.target = name;
             UnityEngine.Debug.Log(newPayload.target);
             toggleState = !toggleState;
-            responses["toggleOnlineVideo"](newPayload);
+            requests["toggleOnlineVideo"](newPayload);
         }
 
         public override void OnLobbyClientSceneChanged(NetworkConnection conn)
@@ -388,9 +365,10 @@ namespace Prototype.NetworkLobby
         }
 
         public void HostStart()
-        {
+        { 
             User user = new User();
             user.userName = lobbyName.text;
+            user.userType = "Admin";
             int n;
             if (user.userName == "" || !int.TryParse(user.userName, out n))
             {
@@ -401,16 +379,69 @@ namespace Prototype.NetworkLobby
                 return;
             }
 
+            UnityEngine.Debug.Log(user.userName);
+
+            Payload payload = new Payload();
+            payload.user = user;
+
+            InitConnection();
+
+            if (!ws.IsAlive)
+            {
+                infoPanel.Display("Проблемы с подключением к серверу, попробуйте снова",
+                    "Вернуться", () => { ChangeTo(mainMenuPanel); });
+
+                return;
+            }
+
+            requests["createLobby"](payload);
+        }
+
+        private void StartLobby()
+        {
             ChangeTo(lobbyPanel);
             SetServerInfo("Hosting", lobbyName.text);
+        }
 
-            UnityEngine.Debug.Log(user.userName);
+        private void InitConnection()
+        {
+            ws = new WebSocket("ws://localhost:8999");
+            //ws = new WebSocket("ws://cinematele2.herokuapp.com/");
+
+            ws.OnMessage += (sender, e) => {
+                UnityEngine.Debug.Log(e.Data);
+
+                Message message = JsonConvert.DeserializeObject<Message>(e.Data);
+
+                UnityEngine.Debug.Log(e.Data);
+                UnityEngine.Debug.Log(message.command);
+                UnityEngine.Debug.Log("isREquset " + message.isRequest);
+
+                if (message.isRequest)
+                {
+                    requests[message.command](message.payload);
+                }
+                else
+                {
+                    responses[message.command](message);
+                }
+            };
+
+            ws.Connect();
+
+            User user = new User();
+            user.userName = lobbyName.text;
             user.userType = "Admin";
 
             Payload payload = new Payload();
             payload.user = user;
 
-            responses["createLobby"](payload);
+            Message regMessage = new Message();
+            regMessage.payload = payload;
+            regMessage.command = "reg";
+
+            string json = JsonConvert.SerializeObject(regMessage);
+            ws.Send(json);
         }
 
         public void ChangeTo(RectTransform newPanel)
