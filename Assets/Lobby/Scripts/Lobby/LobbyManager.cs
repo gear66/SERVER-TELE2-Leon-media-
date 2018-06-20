@@ -263,6 +263,25 @@ namespace Prototype.NetworkLobby
                         }
                     }
                 },
+                { "connect", (message) => {
+                        User user = new User();
+                        user.userName = lobbyName.text;
+                        user.userType = "Admin";
+
+                        Payload payload = new Payload();
+                        payload.user = user;
+
+                        Message regMessage = new Message();
+                        regMessage.payload = payload;
+                        regMessage.command = "reg";
+
+                        string json = JsonConvert.SerializeObject(regMessage);
+                        ws.Send(json);
+
+                        requests["createLobby"](payload);
+                     }
+
+                }
 
             };
 
@@ -411,15 +430,13 @@ namespace Prototype.NetworkLobby
 
             InitConnection();
 
-            if (!ws.IsAlive)
-            {
-                infoPanel.Display("Проблемы с подключением к серверу, попробуйте снова",
-                    "Вернуться", () => { ChangeTo(mainMenuPanel); });
+            //if (!ws.IsAlive)
+            //{
+            //    infoPanel.Display("Проблемы с подключением к серверу, попробуйте снова",
+            //        "Вернуться", () => { ChangeTo(mainMenuPanel); });
 
-                return;
-            }
-
-            requests["createLobby"](payload);
+            //    return;
+            //}
         }
 
         private void StartLobby()
@@ -452,21 +469,7 @@ namespace Prototype.NetworkLobby
                 }
             };
 
-            ws.Connect();
-
-            User user = new User();
-            user.userName = lobbyName.text;
-            user.userType = "Admin";
-
-            Payload payload = new Payload();
-            payload.user = user;
-
-            Message regMessage = new Message();
-            regMessage.payload = payload;
-            regMessage.command = "reg";
-
-            string json = JsonConvert.SerializeObject(regMessage);
-            ws.Send(json);
+            ws.ConnectAsync();
         }
 
         public void ChangeTo(RectTransform newPanel)
