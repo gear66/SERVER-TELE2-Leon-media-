@@ -112,7 +112,8 @@ namespace Prototype.NetworkLobby
 
             if (toggleVideoPlayer)
             {
-                LobbyPlayerList._instance.TogglePlayerVideo(togglePayload.target, togglePayload.onlineVideo);
+                LobbyPlayerList._instance.TogglePlayerVideo(togglePayload.user.userName, togglePayload.onlineVideo);
+                toggleVideoPlayer = false;
             }
 
             if (refreshPlayer)
@@ -228,6 +229,11 @@ namespace Prototype.NetworkLobby
 
                         string json = JsonConvert.SerializeObject(message);
                         ws.Send(json);
+                    }
+                },
+                { "toggleOnlineVideoConfirm", (payload) => {
+                        toggleVideoPlayer = true;
+                        togglePayload = payload;
                     }
                 },
                 { "broadCastSpeedTest", (payload) => {
