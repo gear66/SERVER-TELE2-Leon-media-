@@ -75,6 +75,8 @@ namespace Prototype.NetworkLobby
         private bool toggleVideoPlayer = false;
         private Payload togglePayload;
 
+        public bool onConnect = false;
+
         public static Dictionary<string, RectTransform> screens;
         public static Dictionary<string, Action<Message>> responses;
         public static Dictionary<string, Action<Payload>> requests;
@@ -97,6 +99,29 @@ namespace Prototype.NetworkLobby
             tt += Time.deltaTime;
             ttt += Time.deltaTime;
             speedIndicator.fillAmount = Mathf.Lerp(speedIndicator.fillAmount, fillLim, 0.03f);
+
+            if (onConnect)
+            {
+                onConnect = false;
+
+                infoPanel.gameObject.SetActive(false);
+
+                User user = new User();
+                user.userName = lobbyName.text;
+                user.userType = "Admin";
+
+                Payload payload = new Payload();
+                payload.user = user;
+
+                Message regMessage = new Message();
+                regMessage.payload = payload;
+                regMessage.command = "reg";
+
+                string json = JsonConvert.SerializeObject(regMessage);
+                ws.Send(json);
+
+                requests["createLobby"](payload);
+            }
 
             if (lobbyCreated)
             {
@@ -264,21 +289,7 @@ namespace Prototype.NetworkLobby
                     }
                 },
                 { "connect", (message) => {
-                        User user = new User();
-                        user.userName = lobbyName.text;
-                        user.userType = "Admin";
-
-                        Payload payload = new Payload();
-                        payload.user = user;
-
-                        Message regMessage = new Message();
-                        regMessage.payload = payload;
-                        regMessage.command = "reg";
-
-                        string json = JsonConvert.SerializeObject(regMessage);
-                        ws.Send(json);
-
-                        requests["createLobby"](payload);
+                        onConnect = true;
                      }
 
                 }
@@ -447,8 +458,8 @@ namespace Prototype.NetworkLobby
 
         private void InitConnection()
         {
-            ws = new WebSocket("ws://localhost:8999");
-            //ws = new WebSocket("ws://cinematele2.herokuapp.com/");
+            //ws = new WebSocket("ws://localhost:8999");
+            ws = new WebSocket("ws://cinematele2.herokuapp.com/");
 
             ws.OnMessage += (sender, e) => {
                 UnityEngine.Debug.Log(e.Data);
@@ -468,6 +479,8 @@ namespace Prototype.NetworkLobby
                     responses[message.command](message);
                 }
             };
+
+            infoPanel.Display("Подключаемся к серверу...", "Оменить", null);
 
             ws.ConnectAsync();
         }
