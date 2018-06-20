@@ -480,7 +480,7 @@ namespace Prototype.NetworkLobby
                 }
             };
 
-            infoPanel.Display("Подключаемся к серверу...", "Оменить", null);
+            infoPanel.Display("При долгом ожидании ответа попробуйте подключиться еще раз", "Оменить", null);
 
             ws.ConnectAsync();
         }
