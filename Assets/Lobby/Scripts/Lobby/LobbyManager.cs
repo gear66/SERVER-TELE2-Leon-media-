@@ -233,8 +233,9 @@ namespace Prototype.NetworkLobby
                     }
                 },
                 { "toggleOnlineVideoConfirm", (payload) => {
-                        toggleVideoPlayer = true;
+                        UnityEngine.Debug.Log("toggleOnlineVideoConfirm: " + payload.onlineVideo);
                         togglePayload = payload;
+                        toggleVideoPlayer = true;
                     }
                 },
                 { "broadCastSpeedTest", (payload) => {
@@ -257,8 +258,8 @@ namespace Prototype.NetworkLobby
                 },
                 { "toggleOnlineVideo", (message) => {
                         if (message.success) {
-                            togglePayload = message.payload;
-                            toggleVideoPlayer = true;
+                            //togglePayload.onlineVideo = !togglePayload.onlineVideo;
+                            //toggleVideoPlayer = true;
                         }
                     }
                 },
@@ -330,10 +331,10 @@ namespace Prototype.NetworkLobby
             UnityEngine.Debug.Log("ToggleOnlineVideo called");
             Payload newPayload = new Payload();
             newPayload.user = user;
-            newPayload.onlineVideo = !toggleState;
+            newPayload.onlineVideo = toggleState;
             newPayload.target = name;
             UnityEngine.Debug.Log(newPayload.target);
-            toggleState = !toggleState;
+            //toggleState = !toggleState;
             requests["toggleOnlineVideo"](newPayload);
         }
 
