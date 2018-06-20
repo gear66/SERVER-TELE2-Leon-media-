@@ -315,7 +315,7 @@ namespace Prototype.NetworkLobby
                 watch.Stop();
             }
 
-            deltaSpeed = (float)(data.LongLength / watch.Elapsed.TotalSeconds / 100000f / 6f); // instead of [Seconds] property
+            deltaSpeed = (float)(data.LongLength / watch.Elapsed.TotalSeconds / 100000f / 2.6f); // instead of [Seconds] property
             UnityEngine.Debug.Log("deltaSpeed in speedtest");
             UnityEngine.Debug.Log(deltaSpeed);
             textSpeed.text = deltaSpeed.ToString("0.00") + " Mb/s";

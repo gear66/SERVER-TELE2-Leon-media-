@@ -8,7 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SERVER/serverN.unity
     guid: 840ef80d59008804ea8c6a90aeeaa180
-  - enabled: 1
+  - enabled: 0
     path: Assets/cinema.unity
     guid: a5f23ed480bbb0143bf244c7099358f9
   m_configObjects: {}
