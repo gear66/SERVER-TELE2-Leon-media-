@@ -75,6 +75,8 @@ namespace Prototype.NetworkLobby
         private bool toggleVideoPlayer = false;
         private Payload togglePayload;
 
+        public bool onConnect = false;
+
         public static Dictionary<string, RectTransform> screens;
         public static Dictionary<string, Action<Message>> responses;
         public static Dictionary<string, Action<Payload>> requests;
@@ -97,6 +99,29 @@ namespace Prototype.NetworkLobby
             tt += Time.deltaTime;
             ttt += Time.deltaTime;
             speedIndicator.fillAmount = Mathf.Lerp(speedIndicator.fillAmount, fillLim, 0.03f);
+
+            if (onConnect)
+            {
+                onConnect = false;
+
+                infoPanel.gameObject.SetActive(false);
+
+                User user = new User();
+                user.userName = lobbyName.text;
+                user.userType = "Admin";
+
+                Payload payload = new Payload();
+                payload.user = user;
+
+                Message regMessage = new Message();
+                regMessage.payload = payload;
+                regMessage.command = "reg";
+
+                string json = JsonConvert.SerializeObject(regMessage);
+                ws.Send(json);
+
+                requests["createLobby"](payload);
+            }
 
             if (lobbyCreated)
             {
@@ -263,6 +288,11 @@ namespace Prototype.NetworkLobby
                         }
                     }
                 },
+                { "connect", (message) => {
+                        onConnect = true;
+                     }
+
+                }
 
             };
 
@@ -411,15 +441,13 @@ namespace Prototype.NetworkLobby
 
             InitConnection();
 
-            if (!ws.IsAlive)
-            {
-                infoPanel.Display("Проблемы с подключением к серверу, попробуйте снова",
-                    "Вернуться", () => { ChangeTo(mainMenuPanel); });
+            //if (!ws.IsAlive)
+            //{
+            //    infoPanel.Display("Проблемы с подключением к серверу, попробуйте снова",
+            //        "Вернуться", () => { ChangeTo(mainMenuPanel); });
 
-                return;
-            }
-
-            requests["createLobby"](payload);
+            //    return;
+            //}
         }
 
         private void StartLobby()
@@ -452,21 +480,9 @@ namespace Prototype.NetworkLobby
                 }
             };
 
-            ws.Connect();
+            infoPanel.Display("При долгом ожидании ответа попробуйте подключиться еще раз", "Оменить", null);
 
-            User user = new User();
-            user.userName = lobbyName.text;
-            user.userType = "Admin";
-
-            Payload payload = new Payload();
-            payload.user = user;
-
-            Message regMessage = new Message();
-            regMessage.payload = payload;
-            regMessage.command = "reg";
-
-            string json = JsonConvert.SerializeObject(regMessage);
-            ws.Send(json);
+            ws.ConnectAsync();
         }
 
         public void ChangeTo(RectTransform newPanel)
