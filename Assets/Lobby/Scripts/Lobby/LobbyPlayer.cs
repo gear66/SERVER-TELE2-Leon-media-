@@ -29,6 +29,7 @@ namespace Prototype.NetworkLobby
         public GameObject localIcone;
         public GameObject remoteIcone;
         public GameObject engine;
+        public InputField duration;
         public bool toggleState;
 
         //public GameObject datasender;
@@ -109,6 +110,11 @@ namespace Prototype.NetworkLobby
             toggleButton.GetComponent<Image>().color = new Color(1f, 1f, 0.75f);
             toggleButton.GetComponentInChildren<Text>().text = ".....";
             LobbyManager.s_Singleton.ToggleOnlineVideo(nameInput.text, toggleState);
+        }
+
+        public void SetDuration(float dur)
+        {
+            duration.text = dur.ToString();
         }
 
         void ChangeReadyButtonColor(Color c)
