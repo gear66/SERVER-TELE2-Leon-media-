@@ -92,13 +92,12 @@ namespace Prototype.NetworkLobby
 
         public void ToggleField(bool newToggleState)
         {
+            Debug.Log("TOGGLE FILED : " + newToggleState);
             if (newToggleState)
             {
                 toggleButton.GetComponent<Image>().color = new Color(0.79f, 1f, 0.79f);
                 toggleButton.GetComponentInChildren<Text>().text = "Online";
-            }
-            if (!newToggleState)
-            {
+            } else {
                 toggleButton.GetComponent<Image>().color = new Color(0.85f, 0.85f, 1f);
                 toggleButton.GetComponentInChildren<Text>().text = "Offline";
             }
@@ -109,7 +108,7 @@ namespace Prototype.NetworkLobby
         {
             toggleButton.GetComponent<Image>().color = new Color(1f, 1f, 0.75f);
             toggleButton.GetComponentInChildren<Text>().text = ".....";
-            LobbyManager.s_Singleton.ToggleOnlineVideo(nameInput.text, toggleState);
+            LobbyManager.s_Singleton.ToggleOnlineVideo(nameInput.text, !toggleState);
         }
 
         public void SetDuration(float dur)

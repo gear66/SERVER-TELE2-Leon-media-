@@ -112,6 +112,7 @@ namespace Prototype.NetworkLobby
 
             if (toggleVideoPlayer)
             {
+                UnityEngine.Debug.Log("toggleVideoPlayer oniine video: " + togglePayload.onlineVideo);
                 LobbyPlayerList._instance.TogglePlayerVideo(togglePayload.user.userName, togglePayload.onlineVideo);
                 toggleVideoPlayer = false;
             }
