@@ -92,7 +92,7 @@ namespace Prototype.NetworkLobby
 
         public void ToggleField(bool newToggleState)
         {
-            Debug.Log("TOGGLE FILED : " + newToggleState);
+            Debug.Log("TOGGLE FILED : " + toggleState);
             if (toggleState)
             {
                 toggleButton.GetComponent<Image>().color = new Color(0.79f, 1f, 0.79f);
@@ -101,7 +101,7 @@ namespace Prototype.NetworkLobby
                 toggleButton.GetComponent<Image>().color = new Color(0.85f, 0.85f, 1f);
                 toggleButton.GetComponentInChildren<Text>().text = "Offline";
             }
-            toggleState = !toggleState;
+            //toggleState = !toggleState;
         }
 
         public void Toggler()
