@@ -21,6 +21,16 @@ namespace Prototype.NetworkLobby
         {
             _instance = this;
             _layout = playerListContentTransform.GetComponent<VerticalLayoutGroup>();
+            _players = new List<LobbyPlayer>();
+        }
+
+        public void ClearPlayres()
+        {
+            _players.ForEach((player) =>
+            {
+                Destroy(player);
+            });
+            _players = new List<LobbyPlayer>();
         }
 
         public void DisplayDirectServerWarning(bool enabled)
@@ -62,11 +72,20 @@ namespace Prototype.NetworkLobby
             LobbyPlayer lobbyPlayer = _players.Find(player => player.nameInput.text == name);
             lobbyPlayer.SetDuration(dur);
         }
-
+        
         public void RemovePlayer(LobbyPlayer player)
         { 
             _players.Remove(player);
             Destroy(player.gameObject);
+            //player.gameObject.SetActive(false);
+            PlayerListModified();
+        }
+
+        public void RemovePlayer(string playerName)
+        {
+            LobbyPlayer lobbyPlayer = _players.Find(player => player.nameInput.text == playerName);
+            _players.Remove(lobbyPlayer);
+            Destroy(lobbyPlayer);
             //player.gameObject.SetActive(false);
             PlayerListModified();
         }

@@ -59,6 +59,8 @@ namespace Prototype.NetworkLobby
 
         protected bool _disconnectServer = false;
 
+        private bool onClose = false;
+
         protected ulong _currentMatchID;
 
         protected LobbyHook _lobbyHooks;
@@ -74,6 +76,9 @@ namespace Prototype.NetworkLobby
 
         private bool toggleVideoPlayer = false;
         private Payload togglePayload;
+
+        private bool onUserDisconnect = false;
+        private Payload userDisconnectPayload;
 
         public bool onConnect = false;
 
@@ -99,6 +104,20 @@ namespace Prototype.NetworkLobby
             tt += Time.deltaTime;
             ttt += Time.deltaTime;
             speedIndicator.fillAmount = Mathf.Lerp(speedIndicator.fillAmount, fillLim, 0.03f);
+
+            if (onUserDisconnect)
+            {
+                onUserDisconnect = false;
+                LobbyPlayerList._instance.RemovePlayer(userDisconnectPayload.user.userName);
+            }
+
+            if (onClose)
+            {
+                LobbyPlayerList._instance.ClearPlayres();
+                ChangeTo(mainMenuPanel);
+                infoPanel.Display("Вы были отключены, создайте новый сервер!", "ОК", null);
+                onClose = false;
+            }
 
             if (onConnect)
             {
@@ -206,6 +225,12 @@ namespace Prototype.NetworkLobby
                 { "joinLobby", (payload) => {
                         joinLobbyPayload = payload;
                         addNewPlayer = true;
+                    }
+                },
+                { "userDisconnect", (payload) => {
+                        UnityEngine.Debug.Log("Calling usediconnect");
+                        userDisconnectPayload = payload;
+                        onUserDisconnect = true;
                     }
                 },
                 { "joinLobbyConfirm", (payload) => {
@@ -442,14 +467,6 @@ namespace Prototype.NetworkLobby
             payload.user = user;
 
             InitConnection();
-
-            //if (!ws.IsAlive)
-            //{
-            //    infoPanel.Display("Проблемы с подключением к серверу, попробуйте снова",
-            //        "Вернуться", () => { ChangeTo(mainMenuPanel); });
-
-            //    return;
-            //}
         }
 
         private void StartLobby()
@@ -480,6 +497,11 @@ namespace Prototype.NetworkLobby
                 {
                     responses[message.command](message);
                 }
+            };
+
+            ws.OnClose += (sender, e) =>
+            {
+                onClose = true;
             };
 
             infoPanel.Display("При долгом ожидании ответа попробуйте подключиться еще раз", "Оменить", null);
