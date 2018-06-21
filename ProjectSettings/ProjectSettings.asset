@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: Krishtal
-  productName: Cinema SERVER
+  productName: SERVER (4G)
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0, g: 0, b: 0, a: 1}
@@ -40,7 +40,7 @@ PlayerSettings:
     width: 1
     height: 1
   m_SplashScreenLogos:
-  - logo: {fileID: 21300000, guid: 2515706b179276f458df22c213765311, type: 3}
+  - logo: {fileID: 21300000, guid: e8cd545e0f0320c41a99123f4eb5f5fc, type: 3}
     duration: 2
   m_VirtualRealitySplashScreen: {fileID: 2800000, guid: 5a2820d60b8dcd34e8bfec26625e067a,
     type: 3}
@@ -120,7 +120,7 @@ PlayerSettings:
     16:10: 1
     16:9: 1
     Others: 1
-  bundleVersion: 46
+  bundleVersion: 60
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -155,7 +155,7 @@ PlayerSettings:
   applicationIdentifier:
     Android: com.Krishtal.CinemaServerR
   buildNumber: {}
-  AndroidBundleVersionCode: 46
+  AndroidBundleVersionCode: 60
   AndroidMinSdkVersion: 21
   AndroidTargetSdkVersion: 0
   AndroidPreferredInstallLocation: 1

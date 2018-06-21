@@ -98,7 +98,7 @@ namespace Prototype.NetworkLobby
                 toggleButton.GetComponent<Image>().color = new Color(0.79f, 1f, 0.79f);
                 toggleButton.GetComponentInChildren<Text>().text = "Online";
             } else {
-                toggleButton.GetComponent<Image>().color = new Color(0.85f, 0.85f, 1f);
+                toggleButton.GetComponent<Image>().color = new Color(1f, 0.85f, 0.85f);
                 toggleButton.GetComponentInChildren<Text>().text = "Offline";
             }
             //toggleState = !toggleState;
