@@ -133,6 +133,7 @@ namespace Prototype.NetworkLobby
             {
                 LobbyPlayerList._instance.AddPlayer(GetPlayer(joinLobbyPayload));
                 addNewPlayer = false;
+
             }
 
             if (toggleVideoPlayer)
@@ -324,7 +325,8 @@ namespace Prototype.NetworkLobby
 
             newPlayer.playerName = user.userName;
             newPlayer.nameInput.text = user.userName;
-            newPlayer.toggleState = user.toggleState;
+            //newPlayer.toggleState = user.toggleState;
+            newPlayer.toggleState = true;
 
             return newPlayer;
         }

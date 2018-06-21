@@ -938,7 +938,7 @@ MonoBehaviour:
   remoteIcone: {fileID: 189178}
   engine: {fileID: 0}
   duration: {fileID: 11487112}
-  toggleState: 0
+  toggleState: 1
   playerName: 
   playerColor: {r: 1, g: 1, b: 1, a: 1}
   playerData: '---'

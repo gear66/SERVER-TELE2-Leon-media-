@@ -30,7 +30,7 @@ namespace Prototype.NetworkLobby
         public GameObject remoteIcone;
         public GameObject engine;
         public InputField duration;
-        public bool toggleState;
+        public bool toggleState = false;
 
         //public GameObject datasender;
         //public GameObject ddd;
