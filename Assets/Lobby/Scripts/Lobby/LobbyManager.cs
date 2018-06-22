@@ -504,7 +504,7 @@ namespace Prototype.NetworkLobby
                 onClose = true;
             };
 
-            infoPanel.Display("При долгом ожидании ответа попробуйте подключиться еще раз", "Оменить", null);
+            infoPanel.Display("При долгом ожидании ответа попробуйте подключиться еще раз", "Отменить", null);
 
             ws.ConnectAsync();
         }
