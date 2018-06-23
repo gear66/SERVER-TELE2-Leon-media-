@@ -64,13 +64,19 @@ namespace Prototype.NetworkLobby
         public void TogglePlayerVideo(string name, bool setToggle)
         {
             LobbyPlayer lobbyPlayer = _players.Find(player => player.nameInput.text == name);
-            lobbyPlayer.ToggleField(setToggle);
+            if (lobbyPlayer != null)
+            {
+                lobbyPlayer.ToggleField(setToggle);
+            }
         }
 
         public void SetPlayerDuration(string name, float dur)
         {
             LobbyPlayer lobbyPlayer = _players.Find(player => player.nameInput.text == name);
-            lobbyPlayer.SetDuration(dur);
+            if (lobbyPlayer != null)
+            {
+                lobbyPlayer.SetDuration(dur); 
+            }
         }
         
         public void RemovePlayer(LobbyPlayer player)
