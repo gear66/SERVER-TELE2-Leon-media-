@@ -80,7 +80,12 @@ namespace Prototype.NetworkLobby
         private bool onUserDisconnect = false;
         private Payload userDisconnectPayload;
 
+        private bool disconnected = false;
+        private bool manualDisconnected = true;
+
         public bool onConnect = false;
+        public bool reconnecting = false;
+        public bool connected = false;
 
         public static Dictionary<string, RectTransform> screens;
         public static Dictionary<string, Action<Message>> responses;
@@ -88,9 +93,13 @@ namespace Prototype.NetworkLobby
 
         private bool lobbyCreated = false;
 
+        public bool repeatConnect = false;
+
         public float t;
         public float tt;
         public float ttt;
+        public float t5s;
+
         public float gg = 0;
         float fillLim;
         public bool speedTest;
@@ -103,7 +112,17 @@ namespace Prototype.NetworkLobby
             t += Time.deltaTime;
             tt += Time.deltaTime;
             ttt += Time.deltaTime;
+            t5s += Time.deltaTime;
             speedIndicator.fillAmount = Mathf.Lerp(speedIndicator.fillAmount, fillLim, 0.03f);
+
+            if (disconnected)
+            {
+                ChangeTo(mainMenuPanel);
+                ws.Close();
+                topPanel.isInGame = false;
+                disconnected = false;
+                manualDisconnected = true;
+            }
 
             if (onUserDisconnect)
             {
@@ -113,15 +132,41 @@ namespace Prototype.NetworkLobby
 
             if (onClose)
             {
-                LobbyPlayerList._instance.ClearPlayres();
-                ChangeTo(mainMenuPanel);
-                infoPanel.Display("Вы были отключены, создайте новый сервер!", "ОК", null);
+                if (!repeatConnect && connected)
+                {
+                    UnityEngine.Debug.Log("closing connection");
+                    if (LobbyPlayerList._instance != null)
+                    {
+                        LobbyPlayerList._instance.ClearPlayres();
+                    }
+                    ChangeTo(mainMenuPanel);
+                    infoPanel.Display("Вы были отключены, создайте новый сервер!", "ОК", null);
+
+                    if (!manualDisconnected)
+                    {
+                        infoPanel.Display("Производятся попытки переподключения", "ОК", null);
+                        reconnecting = true;
+                    }
+                }
                 onClose = false;
+            }
+
+            if (reconnecting)
+            {
+                if (t5s > 5)
+                {
+                    UnityEngine.Debug.Log("InitConn");
+                    ws.ConnectAsync();
+                    t5s = 0;
+                }
             }
 
             if (onConnect)
             {
                 onConnect = false;
+                reconnecting = false;
+                repeatConnect = false;
+                manualDisconnected = false;
 
                 infoPanel.gameObject.SetActive(false);
 
@@ -146,6 +191,7 @@ namespace Prototype.NetworkLobby
             {
                 StartLobby();
                 lobbyCreated = false;
+                connected = true;
             }
 
             if (addNewPlayer)
@@ -227,8 +273,17 @@ namespace Prototype.NetworkLobby
                         addNewPlayer = true;
                     }
                 },
+                { "disconnect", (payload) => {
+                        Message message = new Message();
+                        message.payload = payload;
+                        message.command = "disconnect";
+
+                        string json = JsonConvert.SerializeObject(message);
+                        ws.Send(json);
+                    }
+                },
                 { "userDisconnect", (payload) => {
-                        UnityEngine.Debug.Log("Calling usediconnect");
+                        UnityEngine.Debug.Log("Calling user diconnect");
                         userDisconnectPayload = payload;
                         onUserDisconnect = true;
                     }
@@ -307,6 +362,12 @@ namespace Prototype.NetworkLobby
                         }
                     }
                 },
+                { "disconnect", (message) => {
+                        if (message.success) {
+                            disconnected = true;
+                        }
+                    }
+                },
                 { "toggleOnlineVideo", (message) => {
                         if (message.success) {
                             //togglePayload.onlineVideo = !togglePayload.onlineVideo;
@@ -319,7 +380,6 @@ namespace Prototype.NetworkLobby
                      }
 
                 }
-
             };
 
             screens = new Dictionary<string, RectTransform> {
@@ -477,17 +537,20 @@ namespace Prototype.NetworkLobby
 
         private void InitConnection()
         {
-            //ws = new WebSocket("ws://localhost:8999");
-            ws = new WebSocket("ws://cinematele2.herokuapp.com/");
+            UnityEngine.Debug.Log("InitConn");
+            if (ws != null)
+            {
+                repeatConnect = true;
+                ws.Close();
+            }
+            ws = new WebSocket("ws://localhost:8999");
+            //ws = new WebSocket("ws://cinematele2.herokuapp.com/");
 
             ws.OnMessage += (sender, e) => {
                 UnityEngine.Debug.Log(e.Data);
-
                 Message message = JsonConvert.DeserializeObject<Message>(e.Data);
+                UnityEngine.Debug.Log("command: " + message.command);
 
-                UnityEngine.Debug.Log(e.Data);
-                UnityEngine.Debug.Log(message.command);
-                UnityEngine.Debug.Log("isREquset " + message.isRequest);
 
                 if (message.isRequest)
                 {
@@ -504,9 +567,9 @@ namespace Prototype.NetworkLobby
                 onClose = true;
             };
 
-            infoPanel.Display("При долгом ожидании ответа попробуйте подключиться еще раз", "Отменить", null);
-
-            ws.ConnectAsync();
+            infoPanel.Display("Идет подключение...", "Отменить", null);
+            reconnecting = true;
+            repeatConnect = true;
         }
 
         public void ChangeTo(RectTransform newPanel)
@@ -552,9 +615,14 @@ namespace Prototype.NetworkLobby
         public BackButtonDelegate backDelegate;
         public void GoBackButton()
         {
-            ChangeTo(mainMenuPanel);
-            ws.Close();
-            topPanel.isInGame = false;
+            User user = new User();
+            user.userName = lobbyName.text;
+            user.userType = "Admin";
+
+            Payload payload = new Payload();
+            payload.user = user;
+
+            requests["disconnect"](payload);
         }
 
         // ----------------- Server management
